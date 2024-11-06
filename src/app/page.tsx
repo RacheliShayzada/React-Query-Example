@@ -1,143 +1,35 @@
-"use client";
+import React from 'react';
+import styles from './HomePage.module.css';
 
-import { useEffect, useState } from "react";
-import { fetchCars, addCar, updateCar, deleteCar } from "@/services/carsService";
-import styles from "./Home.module.css";
-
-// הגדרת ממשק עבור מבנה פרטי הרכב
-interface Car {
-  _id: string;
-  model: string;
-  plate_number: string;
-  color: string;
-}
-
-export default function Home() {
-  const [documents, setDocuments] = useState<Car[]>([]);
-  const [formData, setFormData] = useState<Car>({
-    _id: '',
-    model: '',
-    plate_number: '',
-    color: '',
-  });
-  const [isEditing, setIsEditing] = useState(false);
-  const [isFormVisible, setIsFormVisible] = useState(false);
-
-  const fetchData = async () => {
-    try {
-      const response: Car[] = await fetchCars();
-      setDocuments(response);
-    } catch (error) {
-      console.error("Failed to fetch cars:", error);
-    }
-  };
-
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prevData) => ({
-      ...prevData,
-      [name]: value,
-    }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (isEditing) {
-      await updateCar(formData._id, formData);
-      setIsEditing(false);
-    } else {
-      await addCar(formData);
-    }
-    setFormData({ _id: '', model: '', plate_number: '', color: '' });
-    await fetchData();
-    setIsFormVisible(false); // סגור את הטופס אחרי ההגשה
-  };
-
-  const handleEdit = (car: Car) => {
-    setFormData(car);
-    setIsEditing(true);
-    setIsFormVisible(true); // פתח את הטופס לעריכה
-  };
-
-  const handleDelete = async (id: string) => {
-    await deleteCar(id);
-    setDocuments(documents.filter(doc => doc._id !== id)); // עדכן את הרשימה לאחר מחיקה
-  };
-
-  const toggleFormVisibility = () => {
-    setIsFormVisible(!isFormVisible);
-    if (isFormVisible) {
-      setFormData({ _id: '', model: '', plate_number: '', color: '' }); // אפס את המידע בטופס כשסוגרים אותו
-      setIsEditing(false);
-    }
-  };
-
+export default function HomePage() {
   return (
-    <div className={styles.mainContainer}>
-      <h1 className={styles.tytle}><strong>Cars</strong></h1>
-      {/* כפתור לפתיחת הטופס */}
-      <div className={styles.addButton}>
-        <button className={styles.button} onClick={toggleFormVisibility}>+ Add Car</button>
-      </div>
-      <div className={styles.container}>
-        {documents.length > 0 ? (
-          documents.map((doc) => (
-            <div key={doc._id} className={styles.card}>
-              <h2>{doc.model}</h2>
-              <p><strong>Plate Number:</strong> {doc.plate_number}</p>
-              <p><strong>Color:</strong> {doc.color}</p>
-              <div className={styles.buttonsContainer}>
-                <button className={styles.button} onClick={() => handleEdit(doc)}>🖋️</button>
-                <button className={styles.button} onClick={() => handleDelete(doc._id)}>🗑️</button>
-              </div>
-            </div>
-          ))
-        ) : (
-          <h1>Loading...</h1>
-        )}
+    <div className={styles.container}>
+      <h1 className={styles.title}>Welcome to the User & Car Management System!</h1>
+      
+      <p className={styles.description}>
+        This project is a full-stack application built using <strong>Next.js</strong>. It manages users and cars with data stored in <strong>MongoDB Atlas</strong> and deployed on <strong>Vercel</strong>.
+      </p>
+      
+      <div className={styles.features}>
+        <div className={styles.featureCard}>
+          <h3>User Management</h3>
+          <p>Efficiently manage user data with easy-to-use forms and dynamic updates.</p>
+        </div>
+
+        <div className={styles.featureCard}>
+          <h3>Car Management</h3>
+          <p>Track car details, update information, and perform CRUD operations on vehicles.</p>
+        </div>
+        
+        <div className={styles.featureCard}>
+          <h3>Real-time Database Integration</h3>
+          <p>Seamless connection to MongoDB Atlas for live data management.</p>
+        </div>
       </div>
 
-      {/* טופס */}
-      {isFormVisible && (
-        <div className={styles.formModal}>
-          <button className={styles.closeButton} onClick={toggleFormVisibility}><strong>×</strong></button>
-          <h2>{isEditing ? 'Edit Car' : 'Add Car'}</h2>
-          <form onSubmit={handleSubmit}>
-            <input
-              className={styles.inputArea}
-              type="text"
-              name="model"
-              placeholder="Model"
-              value={formData.model}
-              onChange={handleChange}
-              required
-            />
-            <input
-              className={styles.inputArea}
-              type="text"
-              name="plate_number"
-              placeholder="Plate Number"
-              value={formData.plate_number}
-              onChange={handleChange}
-              required
-            />
-            <input
-              className={styles.inputArea}
-              type="text"
-              name="color"
-              placeholder="Color"
-              value={formData.color}
-              onChange={handleChange}
-              required
-            />
-            <button className={styles.button} type="submit">{isEditing ? 'Update Car' : 'Add Car'}</button>
-          </form>
-        </div>
-      )}
+      <div className={styles.footer}>
+        <p>Powered by <strong>Next.js</strong>, <strong>MongoDB Atlas</strong>, and <strong>Vercel</strong>.</p>
+      </div>
     </div>
   );
 }
