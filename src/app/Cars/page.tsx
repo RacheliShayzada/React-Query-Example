@@ -79,7 +79,7 @@ export default function Cars() {
 
   return (
     <div className={styles.mainContainer}>
-      <h1 className={styles.tytle}><strong>Cars</strong></h1>
+      <h1 className={styles.title}><strong>Cars</strong></h1>
       {/* כפתור לפתיחת הטופס */}
       <div className={styles.addButton}>
         <button className={styles.button} onClick={toggleFormVisibility}>+ Add Car</button>
