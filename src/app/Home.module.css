@@ -1,0 +1,122 @@
+
+.container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+    padding: 20px;
+    background-color: #f0f8ff;
+  }
+
+  .mainContainer{
+    background-color: #f0f8ff;
+  }
+  
+  .card {
+    width: 200px;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    background-color: #e6f2ff;
+    text-align: center;
+    transition: transform 0.2s ease;
+  }
+  
+  .card:hover {
+    transform: translateY(-5px);
+  }
+  
+  .card h2 {
+    font-size: 1.4em;
+    color: #0077cc;
+    margin-bottom: 10px;
+  }
+  
+  .card p {
+    margin: 5px 0;
+    font-size: 1em;
+    color: #333;
+  }
+  
+  .card strong {
+    color: #005699;
+  }
+
+  .formModal {
+    position: fixed;
+    right: 0;
+    top: 0;
+    height: 100%;
+    width: 400px;
+    background-color: rgba(255, 255, 255, 0.9);
+    box-shadow: -2px 0 10px rgba(0, 0, 0, 0.5);
+    padding: 20px;
+    z-index: 1000;
+    transition: transform 0.3s ease;
+  }
+  
+.button {
+  background-color: #007BFF; 
+  color: white; 
+  border: none; 
+  border-radius: 5px;
+  padding: 10px 15px; 
+  font-size: 16px; 
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.2s;
+}
+
+.button:hover {
+  background-color: #0056b3; 
+}
+
+.button:active {
+  transform: scale(0.95); 
+}
+
+.closeButton {
+  background: none; 
+  border: none; 
+  color: #FF0000; 
+  font-size: 24px; 
+  cursor: pointer; 
+}
+
+.tytle{
+  color: #0077cc;
+  font-size: 2em;
+  margin: 20px;
+  text-align: center;
+
+}
+
+.addButton{
+  margin-left: 40px;
+}
+
+.buttonsContainer{
+  display: flex;
+  justify-content: space-between;
+}
+
+.inputArea {
+  width: 100%;
+  padding: 10px; 
+  margin: 10px 0; 
+  border: 1px solid #ccc; 
+  border-radius: 5px; 
+  font-size: 16px; 
+  transition: border-color 0.3s;
+}
+
+.inputArea:focus {
+  border-color: #007BFF; 
+  outline: none; 
+}
+
+.inputArea::placeholder {
+  color: #aaa; 
+  opacity: 1; 
+}
+
+  
