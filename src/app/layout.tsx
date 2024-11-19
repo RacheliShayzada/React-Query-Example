@@ -1,5 +1,9 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
+
+import { QueryClientProvider } from '@tanstack/react-query';
+import queryClient from '@/services/reactQueryClient';
+
 import "./globals.css";
 import NavBar from "./NavBar/NavBar";
 
@@ -30,7 +34,9 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <NavBar />
-        {children}
+        <QueryClientProvider client={queryClient}>
+          {children}
+        </QueryClientProvider>
       </body>
     </html>
   );

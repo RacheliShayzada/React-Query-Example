@@ -1,109 +1,127 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { fetchCars, addCar, updateCar, deleteCar } from "@/services/carsService";
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { fetchCars, addCar, updateCar, deleteCar, Car } from "@/services/carsService";
 import styles from "@/app/Home.module.css";
 import CarsCard from "./CarsCard";
 
-// הגדרת ממשק עבור מבנה פרטי הרכב
-interface Car {
-  _id: string;
-  model: string;
-  plate_number: string;
-  color: string;
-}
-
 export default function Cars() {
-  const [documents, setDocuments] = useState<Car[]>([]);
-  const [formData, setFormData] = useState<Car>({
-    _id: '',
-    model: '',
-    plate_number: '',
-    color: '',
+  const queryClient = useQueryClient();
+
+  const { data: cars, isLoading, error } = useQuery<Car[], Error>({
+    queryKey: ["cars"],
+    queryFn: fetchCars,
+    staleTime: 300000,
   });
-  const [isEditing, setIsEditing] = useState(false);
+
+  const [formData, setFormData] = useState<Omit<Car, "_id">>({
+    model: "",
+    plate_number: "",
+    color: "",
+  });
+  
+
+  const addCarMutation = useMutation<Car, Error, Omit<Car, "_id">>({
+    mutationFn: addCar,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["cars"] });
+    },
+  });
+
+  const updateCarMutation = useMutation({
+    mutationFn: (data: { id: string; car: Car }) =>
+      updateCar(data.id, data.car),
+    onMutate: async (data) => {
+      await queryClient.cancelQueries({ queryKey: ["cars"] });
+      const previousCars = queryClient.getQueryData<Car[]>(["cars"]);
+
+      queryClient.setQueryData<Car[]>(["cars"], (oldCars) =>
+        oldCars
+          ? oldCars.map((car) =>
+            car._id === data.id ? { ...car, ...data.car } : car
+          )
+          : []
+      );
+
+      return { previousCars };
+    },
+    onError: (_error, _deletedUserId, context) => {
+      queryClient.setQueryData(["cars"], context?.previousCars); 
+    },
+  });
+
+  const deleteCarMutation = useMutation({
+    mutationFn: (id: string) => deleteCar(id), 
+    onMutate: async (id: string) => {
+      await queryClient.cancelQueries({ queryKey: ["cars"] });
+      const previousCars = queryClient.getQueryData<Car[]>(["cars"]);
+  
+      queryClient.setQueryData<Car[]>(["cars"], (oldCars) =>
+        oldCars ? oldCars.filter((car) => car._id !== id) : []
+      );
+  
+      return { previousCars };
+    },
+    onError: (_error, _deletedUserId, context) => {
+      queryClient.setQueryData(["cars"], context?.previousCars); 
+    },
+  });
+  
+  const [editingCarId, setEditingCarId] = useState<string | null>(null);
   const [isFormVisible, setIsFormVisible] = useState(false);
 
-  const fetchData = async () => {
-    try {
-      const response: Car[] = await fetchCars();
-      setDocuments(response);
-    } catch (error) {
-      console.error("Failed to fetch cars:", error);
-    }
-  };
-
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prevData) => ({
-      ...prevData,
-      [name]: value,
-    }));
+  const handleEdit = (car: Car) => {
+    setEditingCarId(car._id!);
+    setFormData({
+      model: car.model,
+      plate_number: car.plate_number,
+      color: car.color,
+    });
+    setIsFormVisible(true);
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (isEditing) {
-      await updateCar(formData._id, formData);
-      setIsEditing(false);
+
+    if (editingCarId) {
+      await updateCarMutation.mutate({ id: editingCarId, car: formData });
+      setEditingCarId(null);
     } else {
-      await addCar(formData);
+      await addCarMutation.mutateAsync(formData);
     }
-    setFormData({ _id: '', model: '', plate_number: '', color: '' });
-    await fetchData();
-    setIsFormVisible(false); // סגור את הטופס אחרי ההגשה
+
+    setFormData({ model: "", plate_number: "", color: "" });
+    setIsFormVisible(false);
   };
 
-  const handleEdit = (car: Car) => {
-    setFormData(car);
-    setIsEditing(true);
-    setIsFormVisible(true); // פתח את הטופס לעריכה
-  };
-
-  const handleDelete = async (id: string) => {
-    await deleteCar(id);
-    setDocuments(documents.filter(doc => doc._id !== id)); // עדכן את הרשימה לאחר מחיקה
+  const handleDelete = (id: string) => {
+    deleteCarMutation.mutate(id);
   };
 
   const toggleFormVisibility = () => {
     setIsFormVisible(!isFormVisible);
     if (isFormVisible) {
-      setFormData({ _id: '', model: '', plate_number: '', color: '' }); // אפס את המידע בטופס כשסוגרים אותו
-      setIsEditing(false);
+      setFormData({ model: "", plate_number: "", color: "" });
+      setEditingCarId(null);
     }
   };
 
-  return (
-    <div className={styles.mainContainer}>
-      <h1 className={styles.title}><strong>Cars</strong></h1>
-      {/* כפתור לפתיחת הטופס */}
-      <div className={styles.addButton}>
-        <button className={styles.button} onClick={toggleFormVisibility}>+ Add Car</button>
-      </div>
-      <div className={styles.container}>
-        {documents.length > 0 ? (
-          documents.map((doc) => (
-            <div key={doc._id}>
-              <CarsCard
-                doc={doc}
-                handleEdit={handleEdit}
-                handleDelete={handleDelete} />
-            </div>
-          ))
-        ) : (
-          <h1>Loading...</h1>
-        )}
-      </div>
+  if (isLoading) return <h1>Loading...</h1>;
+  if (error instanceof Error) return <h1>Error: {error.message}</h1>;
 
-      {/* טופס */}
+  return (
+    <div>
+      <button className={styles.button} onClick={toggleFormVisibility}>
+        {isFormVisible ? "Close Form" : "+ Add Car"}
+      </button>
+
       {isFormVisible && (
         <div className={styles.formModal}>
-          <button className={styles.closeButton} onClick={toggleFormVisibility}><strong>×</strong></button>
-          <h2>{isEditing ? 'Edit Car' : 'Add Car'}</h2>
+          <button className={styles.closeButton} onClick={toggleFormVisibility}>
+            <strong>×</strong>
+          </button>
+          <h2>{editingCarId ? 'Edit Car' : 'Add Car'}</h2> {/* Condition for "Edit" or "Add" */}
           <form onSubmit={handleSubmit}>
             <input
               className={styles.inputArea}
@@ -111,7 +129,7 @@ export default function Cars() {
               name="model"
               placeholder="Model"
               value={formData.model}
-              onChange={handleChange}
+              onChange={(e) => setFormData({ ...formData, model: e.target.value })}
               required
             />
             <input
@@ -120,7 +138,7 @@ export default function Cars() {
               name="plate_number"
               placeholder="Plate Number"
               value={formData.plate_number}
-              onChange={handleChange}
+              onChange={(e) => setFormData({ ...formData, plate_number: e.target.value })}
               required
             />
             <input
@@ -129,13 +147,24 @@ export default function Cars() {
               name="color"
               placeholder="Color"
               value={formData.color}
-              onChange={handleChange}
+              onChange={(e) => setFormData({ ...formData, color: e.target.value })}
               required
             />
-            <button className={styles.button} type="submit">{isEditing ? 'Update Car' : 'Add Car'}</button>
+            <button className={styles.button} type="submit">{editingCarId ? 'Update Car' : 'Add Car'}</button> {/* Change button text based on editingCarId */}
           </form>
         </div>
       )}
+
+      <div className={styles.container}>
+        {cars?.map((car) => (
+          <CarsCard
+            key={car._id}
+            doc={car}
+            handleEdit={handleEdit}
+            handleDelete={handleDelete}
+          />
+        ))}
+      </div>
     </div>
   );
 }

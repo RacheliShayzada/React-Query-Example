@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import React from 'react';
-import styles from './NavBar.module.css'; // נניח שאת משתמשת בקובץ CSS עבור עיצוב
+import styles from './NavBar.module.css';
 
 function NavBar() {
   return (
