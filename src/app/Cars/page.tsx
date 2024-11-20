@@ -20,7 +20,8 @@ export default function Cars() {
     plate_number: "",
     color: "",
   });
-  
+  const [editingCarId, setEditingCarId] = useState<string | null>(null);
+  const [isFormVisible, setIsFormVisible] = useState(false);
 
   const addCarMutation = useMutation<Car, Error, Omit<Car, "_id">>({
     mutationFn: addCar,
@@ -67,9 +68,7 @@ export default function Cars() {
       queryClient.setQueryData(["cars"], context?.previousCars); 
     },
   });
-  
-  const [editingCarId, setEditingCarId] = useState<string | null>(null);
-  const [isFormVisible, setIsFormVisible] = useState(false);
+
 
   const handleEdit = (car: Car) => {
     setEditingCarId(car._id!);
