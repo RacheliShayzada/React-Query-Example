@@ -10,7 +10,6 @@ export interface Car {
 }
 
 export const fetchCars = async (): Promise<Car[]> => {
-  console.log(222,"Fetching");
   const response = await axios.get<Car[]>("/api/cars");
   return response.data;
 };

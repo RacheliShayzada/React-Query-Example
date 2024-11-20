@@ -29,22 +29,20 @@ export async function getAllDocuments( collection: string) {
     const documents = await db.collection(collection).find().toArray();
     return documents;
  }
- 
- // פונקציה לעדכון מסמך לפי ID
+
 export async function updateDocument( collection: string, id: string, updatedDocument: object) {
     const client = await connectDatabase();
     const db = client.db('DB01');
     const result = await db.collection(collection).updateOne(
-        { _id: new ObjectId(id) }, // חיפוש לפי ה-ID
-        { $set: updatedDocument }   // עדכון השדות המבוקשים
+        { _id: new ObjectId(id) },
+        { $set: updatedDocument }
     );
     return result;
 }
 
-// פונקציה למחיקת מסמך לפי ID
 export async function deleteDocument( collection: string, id: string) {
     const client = await connectDatabase();
     const db = client.db('DB01');
-    const result = await db.collection(collection).deleteOne({ _id: new ObjectId(id) }); // מחיקת המסמך לפי ה-ID
+    const result = await db.collection(collection).deleteOne({ _id: new ObjectId(id) });
     return result;
 }

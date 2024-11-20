@@ -10,5 +10,5 @@ export async function GET(request) {
 export async function POST(request) {
   const body = await request.json();
   const newCar = await insertDocument( "users", body);
-  return NextResponse.json(newCar, { status: 201 }); // החזרת הסטטוס 201 ליצירה מוצלחת
+  return NextResponse.json(newCar, { status: 201 }); 
 }

@@ -12,8 +12,7 @@ export const fetchUsers = async () => {
 
 export const addUser = async (user) => {
   try {
-    // כאן אין צורך לשלוח את ה-ID
-    const { _id, ...userData } = user; // מסננים את ה-ID
+    const { _id, ...userData } = user; 
     const response = await http.post('/api/users', userData);
     return response.data;
   } catch (error) {
